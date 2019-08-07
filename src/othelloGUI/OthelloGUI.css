@@ -1,0 +1,13 @@
+#infoPaneFont {
+    -fx-font-size: 18pt;
+    -fx-font-family: "HG正楷書体-PRO";
+    -fx-text-fill: black;
+    -fx-opacity: 0.6;
+}
+
+#boardSymbolFont {
+    -fx-font-size: 21pt;
+    -fx-font-family: "HG行書体";
+    -fx-text-fill: white;
+    -fx-opacity: 0.6;
+}
