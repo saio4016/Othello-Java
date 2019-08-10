@@ -3,12 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package othello;
+package othelloPlayer;
+
+import othelloSystem.Board;
 
 /**
  *
  * @author Owner
  */
-public class ExceptionPass extends Exception{
-    
+public interface Evaluate {
+
+    public int evaluate(Board board);
 }

@@ -41,9 +41,9 @@ import javafx.event.ActionEvent;
 import javafx.stage.FileChooser;
 
 import othelloSystem.Board;
-import othelloSystem.Player;
-import othelloSystem.PlayerHuman;
-import othelloSystem.PlayerSai;
+import othelloPlayer.Player;
+import othelloPlayer.PlayerHuman;
+import othelloPlayer.PlayerSai;
 import othelloSystem.Point;
 import othelloSystem.Disc;
 
@@ -101,35 +101,48 @@ public class OthelloGUIController {
     private ObservableList<Record> recordList;
 
     /**
-     * **********************オセロプログラム***********************
+     * --------------------オセロプログラム--------------------*
      */
-    Board board;        // 盤面
-    PlayerHuman human;  // 人
-    PlayerSai sai;      // AI
+    Board board;       // 盤面
+    PlayerHuman human; // 人
+    PlayerSai sai;     // AI
 
-    int currentMode;  // ゲームモード(変更選択時にキャンセルで戻せるように)
-    int undoCount;    // 戻っている手数
+    int currentMode; // ゲームモード(変更選択時にキャンセルで戻せるように)
+    int undoCount;   // 戻っている手数
 
+    // Humanの手番
     void inSystemHuman(String in) {
         Vector move = new Vector();
         move.add(new Point(in));
 
         human.onTurn(board, move);
 
-        updateGUI();
         addRecord();
+        if(board.pass()) {
+            updateGUI();
+            addRecord();
+            lockBoard();
+            passDialog();
+        }
+        updateGUI();
+        
+        // 終局
+        if (board.isGameOver()) {
+            gameOverDialog();
+        }
     }
 
+    // Saiの手番
     void inSystemSai() {
         // AIの手番か判定
         if (!isTurnSai()) {
             return;
         }
 
-        //盤面操作不可に
+        // 盤面操作不可に
         lockGUI();
 
-        //バックグラウンドで探索
+        // バックグラウンドで探索
         Task<Boolean> task = new Task<Boolean>() {
             @Override
             protected Boolean call() throws Exception {
@@ -140,13 +153,14 @@ public class OthelloGUIController {
 
             @Override
             protected void succeeded() {
-                //探索が終わったらGUI更新
+                // 探索が終わったらGUI更新
                 updateGUI();
                 addRecord();
 
                 if (board.pass()) {
                     updateGUI();
                     addRecord();
+                    lockBoard();
                     passDialog();
                 }
 
@@ -156,6 +170,10 @@ public class OthelloGUIController {
                 } else {
                     // ロック解除(次はhumanの手番)
                     openRecord();
+                    // 終局
+                    if (board.isGameOver()) {
+                        gameOverDialog();
+                    }
                 }
             }
         };
@@ -166,11 +184,11 @@ public class OthelloGUIController {
         t.start();
     }
     /**
-     * **************************************************************
+     * ------------------------------------------------------*
      */
 
     /**
-     * ***************************GUI管理****************************
+     * --------------------GUI管理--------------------*
      */
     // 盤面の背景色
     public static final int BOARD_IMAGE_GREEN = 0;
@@ -186,7 +204,7 @@ public class OthelloGUIController {
     // 盤面の石
     public static final int DISC_IMAGE_BLACK = 0; // 黒石
     public static final int DISC_IMAGE_WHITE = 1; // 白石
-    public static final int DISC_IMAGE_LAST = 2; // 直前の手
+    public static final int DISC_IMAGE_LAST = 2;  // 直前の手
     public static final int DISC_IMAGE_MOVABLE = 3; // 置ける場所
     public static final int DISC_IMAGE_OPACITY = 4; // 透明度(カーソルを置いた際)
 
@@ -254,13 +272,13 @@ public class OthelloGUIController {
     //棋譜を開く
     @FXML
     void openFileEvent(ActionEvent event) throws Exception {
-        //FileChooserの設定
+        // FileChooserの設定
         FileChooser fc = fileChooserSetting("ファイルを開く");
 
-        //ファイル選択
+        // ファイル選択
         File file = fc.showOpenDialog(null);
 
-        //ファイル読み込み
+        // ファイル読み込み
         if (file != null) {
             try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                 String str = br.readLine();
@@ -537,6 +555,7 @@ public class OthelloGUIController {
                     updateGUI();
                     return;
                 }
+                
                 if (!confirmDialog("棋譜を上書きしてもよろしいですか？")) {
                     return;
                 }
@@ -554,16 +573,6 @@ public class OthelloGUIController {
 
             // Saiの手番
             inSystemSai();
-
-            // パスならダイアログ出力(Saiがパスの場合のみ)
-            if (board.pass()) {
-                passDialog();
-            }
-
-            // 終局
-            if (board.isGameOver()) {
-                gameOverDialog();
-            }
         }
     }
 
@@ -715,8 +724,7 @@ public class OthelloGUIController {
                 movable = (ImageView) sp.getChildren().get(DISC_IMAGE_MOVABLE);
                 opacity = (ImageView) sp.getChildren().get(DISC_IMAGE_OPACITY);
 
-                // 内部盤面の石色を取得(GUIは0~7,内部は1~8であることに注意)
-                color = board.getColor(new Point(x + 1, y + 1));
+                color = board.getColor(new Point(x, y));
 
                 // 石を更新
                 switch (color) {
@@ -764,26 +772,23 @@ public class OthelloGUIController {
             return;
         }
 
-        // GUIは0~7,内部は1~8であることに注意
         Point p = (Point) update.get(0);
-        StackPane sp = (StackPane) boardPane.getChildren().get((p.x - 1) * Board.BOARD_SIZE + p.y - 1);
+        StackPane sp = (StackPane) boardPane.getChildren().get(p.x * 8 + p.y);
         ImageView last = (ImageView) sp.getChildren().get(DISC_IMAGE_LAST);
 
         last.setVisible(true);
     }
 
-    //置ける箇所にマークを付ける
+    // 置ける箇所にマークを付ける
     void updateMovablePos() {
-        int x, y;
+        Point p;
         StackPane sp;
         Vector v = board.getMovablePos();
 
         // 置ける場所のImageを差し替える
         for (Object o : v) {
-            // GUIは0~7,内部は1~8なので-1している
-            x = ((Point) o).x - 1;
-            y = ((Point) o).y - 1;
-            sp = (StackPane) boardPane.getChildren().get(x * 8 + y);
+            p = (Point) o;
+            sp = (StackPane) boardPane.getChildren().get(p.x * 8 + p.y);
             sp.getChildren().get(DISC_IMAGE_MOVABLE).setVisible(true);
         }
     }
@@ -1099,11 +1104,11 @@ public class OthelloGUIController {
     /*----------------------------------------------------------------*/
  /*----------------------------デバッグ用---------------------------*/
     void debugLiberty() {
-        for (int y = 1; y <= Board.BOARD_SIZE; y++) {
-            for (int x = 1; x <= Board.BOARD_SIZE; x++) {
-                //System.out.print(board.getLiberty(new Point(x,y)));                
+        for (int y = 0; y < Board.BOARD_SIZE; y++) {
+            for (int x = 0; x < Board.BOARD_SIZE; x++) {
+                System.out.print(board.getLiberty(new Point(x,y)));                
             }
-            //System.out.println("");
+            System.out.println("");
         }
 
         int cnt = 0;

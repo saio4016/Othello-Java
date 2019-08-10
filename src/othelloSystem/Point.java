@@ -26,21 +26,21 @@ public class Point {
     }
 
     //////////////////////////////
-    //入力座標からから内部座標へ
+    // 入力座標からから内部座標へ
     public Point(String coord) throws IllegalArgumentException {
         if (coord == null || coord.length() < 2) {
             throw new IllegalArgumentException(
                     "The argument must be Reversi style soordinates!");
         }
-        x = coord.charAt(0) - 'a' + 1;
-        y = coord.charAt(1) - '1' + 1;
+        x = coord.charAt(0) - 'a';
+        y = coord.charAt(1) - '1';
     }
 
     //内部座標から表示座標へ
     public String toString() {
         String coord = new String();
-        coord += (char) ('a' + x - 1);
-        coord += (char) ('1' + y - 1);
+        coord += (char) ('a' + x);
+        coord += (char) ('1' + y);
         return coord;
     }
     //////////////////////////////

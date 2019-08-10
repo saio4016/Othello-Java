@@ -3,9 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package othelloSystem;
+package othelloPlayer;
 
 import java.util.Vector;
+import othelloSystem.*;
 
 /**
  * オーバーライド用

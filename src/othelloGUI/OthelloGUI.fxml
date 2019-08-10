@@ -1961,22 +1961,22 @@
                     <items>
                         <Button fx:id="buttonGreatestUndo" focusTraversable="false" mnemonicParsing="false" onAction="#buttonGreatestUndoEvent">
                             <graphic>
-                                <ImageView fitHeight="14.0" fitWidth="14.0" rotate="180.0">
+                                <ImageView fitHeight="15.0" fitWidth="15.0" rotate="180.0">
                                     <image>
-                                        <Image url="@../img/iconUR(1).png" />
+                                        <Image url="@../img/iconURG.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
                         </Button>
                         <Separator orientation="VERTICAL" />
                         <Button fx:id="buttonUndo" focusTraversable="false" mnemonicParsing="false" onAction="#buttonUndoEvent">
-                            <graphic>
-                                <ImageView fitHeight="14.0" fitWidth="14.0" rotate="180.0">
-                                    <image>
-                                        <Image url="@../img/iconUR%20(2).png" />
-                                    </image>
-                                </ImageView>
-                            </graphic>
+                     <graphic>
+                        <ImageView fitHeight="15.0" fitWidth="12.0" rotate="180.0">
+                           <image>
+                              <Image url="@../img/iconUR.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
                         </Button>
                         <Separator orientation="VERTICAL" />
                         <Button fx:id="buttonStop" focusTraversable="false" mnemonicParsing="false" onAction="#buttonStopEvent">
@@ -1990,20 +1990,20 @@
                         </Button>
                         <Separator orientation="VERTICAL" />
                         <Button fx:id="buttonRedo" focusTraversable="false" mnemonicParsing="false" onAction="#buttonRedoEvent">
-                            <graphic>
-                                <ImageView fitHeight="14.0" fitWidth="14.0">
-                                    <image>
-                                        <Image url="@../img/iconUR%20(2).png" />
-                                    </image>
-                                </ImageView>
-                            </graphic>
+                     <graphic>
+                        <ImageView fitHeight="12.0" fitWidth="12.0">
+                           <image>
+                              <Image url="@../img/iconUR.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
                         </Button>
                         <Separator orientation="VERTICAL" />
                         <Button fx:id="buttonGreatestRedo" focusTraversable="false" mnemonicParsing="false" onAction="#buttonGreatestRedoEvent">
                             <graphic>
                                 <ImageView fitHeight="14.0" fitWidth="14.0">
                                     <image>
-                                        <Image url="@../img/iconUR(1).png" />
+                                        <Image url="@../img/iconURG.png" />
                                     </image>
                                 </ImageView>
                             </graphic>

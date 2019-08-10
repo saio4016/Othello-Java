@@ -3,9 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package othelloSystem;
+package othelloPlayer;
 
 import java.util.Vector;
+import othelloSystem.Board;
+import othelloSystem.Point;
 
 /**
  * プレイヤーSai
@@ -15,9 +17,9 @@ import java.util.Vector;
 public class PlayerSai extends Player {
 
     public int presearch_depth = 3;
-    public int normal_depth = 5;
-    public int wld_depth = 12;
-    public int perfect_depth = 10;
+    public int normal_depth = 6;
+    public int wld_depth = 13;
+    public int perfect_depth = 13;
 
     public Evaluate Eval; // 評価の仕方
 
@@ -29,20 +31,24 @@ public class PlayerSai extends Player {
             limit = Integer.MAX_VALUE;
 
             if (Board.MAX_TURNS - board.getMoves() <= perfect_depth) {
+                System.out.println("Evel: Perfect");
                 // 手数まで読み切り
                 Eval = new EvaluatePerfect();
             } else {
+                System.out.println("Evel: WDL");
                 // 勝敗のみ読み切り
-                Eval = new EvaluateVictory();
+                Eval = new EvaluateWDL();
             }
         } else {
+            System.out.println("Evel: Normal");
             // 通常探索
             limit = normal_depth;
-            Eval = new EvaluateSearch();
+            Eval = new EvaluateNormal();
         }
-
+        
         sort(board, movables, presearch_depth); // 置ける場所のソート
 
+        System.out.println("---"+(board.getMoves()+1)+"手目---");
         int eval, eval_max = Integer.MIN_VALUE; // 評価値
         Point p = null; // 置く場所
         for (Object movable : movables) {
@@ -55,11 +61,13 @@ public class PlayerSai extends Player {
                 p = (Point) movable;
             }
             // コンソールに評価値の表示
-            System.out.print(((Point) movable).toString() + ": " + eval + ", ");
+            System.out.print("("+((Point) movable).toString() + ": " + eval +")"+ ", ");
         }
+        
         // 置く場所の評価値を表示
         System.out.println("");
-        System.out.println((Point) p + "：" + eval_max);
+        System.out.println("置いた場所: "+(Point) p + "." + eval_max);
+        System.out.println("--------------------------");
         // 石を置く
         board.move(p);
     }
@@ -130,7 +138,7 @@ public class PlayerSai extends Player {
                 Move b = (Move) moves.get(begin);
                 Move c = (Move) moves.get(current);
 
-                //交換
+                // 交換
                 if (b.eval < c.eval) {
                     moves.set(begin, c);
                     moves.set(current, b);

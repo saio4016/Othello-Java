@@ -20,13 +20,13 @@ public class OthelloGUI extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        //stage設定
-        stage.setTitle("Othello"); //タイトル
-        stage.setWidth(720);       //720
-        stage.setHeight(565);      //25+540
-        stage.setResizable(false); //サイズ変更不可
+        // stage設定
+        stage.setTitle("Othello"); // タイトル
+        stage.setWidth(720);       // 720
+        stage.setHeight(565);      // 25+540
+        stage.setResizable(false); // サイズ変更不可
 
-        //FXMLファイルの読み込み
+        // FXMLファイルの読み込み
         Parent pane = FXMLLoader.load(getClass().getResource("OthelloGUI.fxml"));
         Scene scene = new Scene(pane, 720, 540);
 
