@@ -8,6 +8,7 @@ package othelloPlayer;
 import othelloSystem.*;
 
 /**
+ * 完全読み切り
  *
  * @author Owner
  */

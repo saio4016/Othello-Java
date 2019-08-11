@@ -6,8 +6,7 @@
 package othelloPlayer;
 
 import java.util.Vector;
-import othelloSystem.Board;
-import othelloSystem.Point;
+import othelloSystem.*;
 
 /**
  * プレイヤーSai
@@ -16,79 +15,70 @@ import othelloSystem.Point;
  */
 public class PlayerSai extends Player {
 
-    public int presearch_depth = 3;
-    public int normal_depth = 6;
-    public int wld_depth = 13;
-    public int perfect_depth = 13;
+    private int presearch_depth = 3;
+    private int normal_depth = 6;
+    private int perfect_depth = 13;
 
     public Evaluate Eval; // 評価の仕方
 
     @Override
     public void onTurn(Board board, Vector movables) {
+
+        System.out.println("-----" + (board.getMoves() + 1) + "手目-----");
+
         int limit; // 探索の深さ
-        if (Board.MAX_TURNS - board.getMoves() <= wld_depth) {
-            // 盤面の読み切り
+        if (Board.MAX_TURNS - board.getMoves() <= perfect_depth) {
+            // 完全読み切り
+            Eval = new EvaluatePerfect();
             limit = Integer.MAX_VALUE;
-
-            if (Board.MAX_TURNS - board.getMoves() <= perfect_depth) {
-                System.out.println("Evel: Perfect");
-                // 手数まで読み切り
-                Eval = new EvaluatePerfect();
-            } else {
-                System.out.println("Evel: WDL");
-                // 勝敗のみ読み切り
-                Eval = new EvaluateWDL();
-            }
+            System.out.println("Eval: Perfect");
         } else {
-            System.out.println("Evel: Normal");
             // 通常探索
-            limit = normal_depth;
             Eval = new EvaluateNormal();
+            limit = normal_depth;
+            System.out.println("Evel: Normal");
         }
-        
-        sort(board, movables, presearch_depth); // 置ける場所のソート
 
-        System.out.println("---"+(board.getMoves()+1)+"手目---");
+        sort(board, movables, presearch_depth); // 探索回数の削減を行うためにソート
+
         int eval, eval_max = Integer.MIN_VALUE; // 評価値
-        Point p = null; // 置く場所
-        for (Object movable : movables) {
-            board.move((Point) movable);
+        Point point = null; // 置く場所
+        for (Object p : movables) {
+            board.move((Point) p);
             eval = -alphabeta(board, limit - 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
             board.undo();
             if (eval > eval_max) {
-                // 評価値の更新
+                // 置く場所の更新
                 eval_max = eval;
-                p = (Point) movable;
+                point = (Point) p;
             }
-            // コンソールに評価値の表示
-            System.out.print("("+((Point) movable).toString() + ": " + eval +")"+ ", ");
+            System.out.print("(" + ((Point) p).toString() + ": " + eval + ")" + ", ");
         }
-        
-        // 置く場所の評価値を表示
+
+        board.move(point); // 石を置く
+
         System.out.println("");
-        System.out.println("置いた場所: "+(Point) p + "." + eval_max);
-        System.out.println("--------------------------");
-        // 石を置く
-        board.move(p);
+        System.out.println("置いた場所: " + point.toString() + "." + eval_max);
+        System.out.println("----------------");
     }
 
     class Move extends Point {
 
-        public int eval = 0; // 評価値
+        public int eval; // 評価値
 
         public Move() {
-            super(0, 0);
+            this(0, 0, 0);
         }
 
-        public Move(int x, int y, int e) {
+        public Move(int x, int y, int eval) {
             super(x, y);
-            eval = e;
+            this.eval = eval;
         }
     }
 
     private int alphabeta(Board board, int limit, int alpha, int beta) {
         if (board.isGameOver() || limit == 0) {
-            // 深さ制限に達したら盤面の評価を行う
+            // 盤面の評価を行う
             return Eval.evaluate(board);
         }
 
@@ -105,10 +95,8 @@ public class PlayerSai extends Player {
                 board.move((Point) pos);
                 eval = -alphabeta(board, limit - 1, -beta, -alpha);
                 board.undo();
-
                 if (eval >= beta) {
-                    // β刈り
-                    // 読み切りの時は飛ばす?
+                    // 必要のない探索をカット
                     return eval;
                 }
                 alpha = Math.max(alpha, eval);
@@ -120,36 +108,34 @@ public class PlayerSai extends Player {
     private void sort(Board board, Vector movables, int limit) {
         Vector moves = new Vector();
 
-        for (Object movable : movables) {
-            int eval;
-            Point p = (Point) movable;
-            board.move(p);
+        int eval;
+        for (Object p : movables) {
+            board.move((Point) p);
             eval = -alphabeta(board, limit - 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
             board.undo();
 
-            Move move = new Move(p.x, p.y, eval);
+            Move move = new Move(((Point) p).x, ((Point) p).y, eval);
             moves.add(move);
         }
 
-        //選択ソート
-        int begin, current;
-        for (begin = 0; begin < moves.size() - 1; begin++) {
-            for (current = begin + 1; current < moves.size(); current++) {
-                Move b = (Move) moves.get(begin);
-                Move c = (Move) moves.get(current);
+        // 選択ソート
+        for (int i = 0; i < moves.size() - 1; i++) {
+            for (int j = i + 1; j < moves.size(); j++) {
+                Move first = (Move) moves.get(i);
+                Move second = (Move) moves.get(j);
 
                 // 交換
-                if (b.eval < c.eval) {
-                    moves.set(begin, c);
-                    moves.set(current, b);
+                if (first.eval < second.eval) {
+                    moves.set(i, second);
+                    moves.set(j, first);
                 }
             }
         }
 
-        //結果の書き戻し
+        // 結果の書き戻し
         movables.clear();
-        for (int i = 0; i < moves.size(); i++) {
-            movables.add(moves.get(i));
+        for (Object m : moves) {
+            movables.add(m);
         }
     }
 }
